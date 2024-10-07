@@ -15,23 +15,53 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 public class Sound {
 
-    private final URL background;
-    private final URL click;
+    private final URL BACKGROUND;
+    private final URL CLICK;
+    private final URL PLAY_MUSIC;
+    private final URL DRAG;
+    private final URL MISS;
+    private final URL HIT;
+    private final URL SHIP_SHUNK;
     private Clip clip;
     
     public Sound() {
-        this.background = this.getClass().getClassLoader().getResource("assets/audio/background.wav");
-        this.click = this.getClass().getClassLoader().getResource("assets/audio/button_click.wav");
+        this.BACKGROUND = this.getClass().getClassLoader().getResource("assets/audio/background.wav");
+        this.CLICK = this.getClass().getClassLoader().getResource("assets/audio/button_click.wav");
+        this.PLAY_MUSIC = this.getClass().getClassLoader().getResource("assets/audio/play.wav");
+        this.DRAG = this.getClass().getClassLoader().getResource("assets/audio/drag.wav");
+        this.MISS = this.getClass().getClassLoader().getResource("assets/audio/object-drops-in-water.wav");
+        this.HIT = this.getClass().getClassLoader().getResource("assets/audio/explosion-sound-effect.wav");
+        this.SHIP_SHUNK = this.getClass().getClassLoader().getResource("assets/audio/wooden-ship-break.wav");
     }
 
     public void soundBackground() {
-        playSound(background, -20.0f, true);
+        playSound(BACKGROUND, -20.0f, true);
     }
     
     public void soundButtonClick() {
-        playSound(click, 0f, false);
+        playSound(CLICK, 0f, false);
     }
-
+    
+    public void soundPlay() {
+        playSound(PLAY_MUSIC, 0.f, true);
+    }
+    
+    public void soundDrag() {
+        playSound(DRAG, 0, false);
+    }
+    
+    private void soundMissShot() {
+        playSound(MISS, 0, false);
+    }
+    
+    private void soundHitShot() {
+        playSound(HIT, 0, false);
+    }
+    
+    private void soundShipSunk() {
+        playSound(SHIP_SHUNK, 0, false);
+    }
+    
     public void stop() {
         if(clip != null && clip.isRunning()) {
             clip.stop();

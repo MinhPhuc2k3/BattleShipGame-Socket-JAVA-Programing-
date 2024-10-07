@@ -9,20 +9,32 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
+import javax.swing.border.LineBorder;
+import utils.Sound;
 
 public class Ship extends DraggableComponent {
 
     private int length;
+    private int cellSize;
     private boolean isHorizontal = true;  // Initial orientation
     private Point initialPosition;
     private BattleShipGrid grid;
+    private ReadyFrm readyFrm;
+    private Sound sound;
 
-    public Ship(int length, BattleShipGrid grid) {
+    public Ship() {
+    }
+    
+    public Ship(int length, BattleShipGrid grid, ReadyFrm readyFrm, int cellSize) {
         this.length = length;
         this.grid = grid;
+        this.readyFrm = readyFrm;
+        this.cellSize = cellSize;
+        sound = new Sound();
         setOpaque(true);
         setBackground(Color.GRAY);
-        setPreferredSize(new Dimension(length * 50, 50));  // Horizontal size
+        setBorder(new LineBorder(Color.CYAN, 2));
+        setPreferredSize(new Dimension(length * cellSize, cellSize));  // Horizontal size
 
         // Store the initial position of the ship
         initialPosition = getLocation();
@@ -50,6 +62,19 @@ public class Ship extends DraggableComponent {
         this.grid = grid;
     }
 
+    public void setCellSize(int cellSize) {
+        this.cellSize = cellSize;
+    }
+    
+    public void setHorizontal(boolean isHorizontal) {
+        this.isHorizontal = isHorizontal;
+        rotate();  // Call the rotate method if orientation changes
+    }
+
+    public boolean isHorizontal() {
+        return isHorizontal;
+    }
+
     public void setInitialPosition(Point initialPosition) {
         this.initialPosition = initialPosition;
     }
@@ -74,69 +99,53 @@ public class Ship extends DraggableComponent {
     private void handleDrop() {
         // Get the current position of the ship
         Point shipPosition = getLocation();
-        System.out.println("Location of Component: "+shipPosition.getX()+"-"+shipPosition.getY());
         int cellSize = 50;
-        
-        int gridx = (int) ((shipPosition.getX() - grid.getX())/cellSize)*cellSize + grid.getX();
-        int gridy = (int) ((shipPosition.getY() - grid.getY())/cellSize)*cellSize + grid.getY();
-        System.out.println("gridx: "+ gridx + "- gridy: "+gridy);
-        setLocation(gridx, gridy);
-        
-        // Calculate the center of the ship
-//        double gx = shipPosition.getX() + (getWidth() / 2);
-//        double gy = shipPosition.getY() + (getHeight() / 2);
-//        Point centerPoint = new Point((int) gx, (int) gy);
-//
-//        // Calculate the nearest grid position based on the center
-//        Point nearestPoint = getNearestPoint(centerPoint.x, centerPoint.y);
-//
-//        if (isInsideGrid(centerPoint)) {
-//            // Snap to the nearest point (grid)
-//            snapToGrid(nearestPoint);
-//        } else {
-//            // Reset to the original position if dropped outside
-//            setLocation(initialPosition);
-//        }
-    }
 
-    private Point getNearestPoint(int x, int y) {
-        List<Point> cordinates = grid.getCoordinations();
-        double minDistance = Double.MAX_VALUE;
-        int idx = -1;
-        for (int i = 0; i < cordinates.size(); i++) {
-            double distance = Math.sqrt(Math.pow(cordinates.get(i).getX() - x, 2) + Math.pow(cordinates.get(i).getY() - y, 2));
-//            System.out.println("Distance: " + distance);
-            if (distance < minDistance) {
-                minDistance = distance;
-                idx = i;
-            }
-        }
-        return cordinates.get(idx);
-    }
-
-    // Check if the drop point is inside the grid area
-    private boolean isInsideGrid(Point dropPoint) {
-        Rectangle gridBounds = grid.getBounds();
-        return gridBounds.contains(dropPoint);
-    }
-
-    // Snap the ship to the nearest grid cell
-    private void snapToGrid(Point nearestPoint) {
-        int gridX = (int) nearestPoint.getX();
-        int gridY = (int) nearestPoint.getY();
-
-        // Adjust for ship orientation and length
-        if (isHorizontal) {
-            if (gridX + getWidth() > grid.getWidth()) {
-                gridX = grid.getWidth() - getWidth();  // Prevent overflow
+        if (isInsideGrid(shipPosition)) {
+            int gridx = (int) ((shipPosition.getX() - grid.getX()) / cellSize) * cellSize + grid.getX();
+            int gridy = (int) ((shipPosition.getY() - grid.getY()) / cellSize) * cellSize + grid.getY();
+            setLocation(gridx, gridy);
+            sound.soundDrag();
+            if (readyFrm.isOverlap(this)) {
+                // If the ship overlaps, reset it to the initial position
+                if (!isHorizontal) {
+                    rotate();
+                    isHorizontal = !isHorizontal;
+                }
+                setLocation(initialPosition);
             }
         } else {
-            if (gridY + getHeight() > grid.getHeight()) {
-                gridY = grid.getHeight() - getHeight();  // Prevent overflow
+            if (!isHorizontal) {
+                rotate();
+                isHorizontal = !isHorizontal;
             }
+            setLocation(initialPosition);
         }
 
-        // Set new location in grid, snapping the ship to the nearest grid cell
-        setLocation(gridX, gridY);
     }
+
+    public boolean isInsideGrid(Point dropPoint) {
+        int cellSize = 50; // Kích thước của 1 ô vuông
+        Rectangle gridBounds = grid.getBounds();
+
+        // Mở rộng gridBounds thêm 50 pixel ở mỗi cạnh
+        Rectangle extendedBounds = new Rectangle(
+                gridBounds.x - cellSize, // Dịch lùi 50 pixel ở cạnh trái
+                gridBounds.y - cellSize, // Dịch lùi 50 pixel ở cạnh trên
+                gridBounds.width + 2 * cellSize, // Tăng chiều rộng thêm 100 pixel (50 ở mỗi bên)
+                gridBounds.height + 2 * cellSize // Tăng chiều cao thêm 100 pixel (50 ở mỗi bên)
+        );
+
+        // Tính các đỉnh của hình chữ nhật
+        Point topRight = new Point((int) dropPoint.getX() + getWidth(), (int) dropPoint.getY());
+        Point bottomLeft = new Point((int) dropPoint.getX(), (int) dropPoint.getY() + getHeight());
+        Point bottomRight = new Point((int) dropPoint.getX() + getWidth(), (int) dropPoint.getY() + getHeight());
+
+        // Kiểm tra nếu tất cả các đỉnh đều nằm trong grid mở rộng
+        return extendedBounds.contains(dropPoint)
+                && extendedBounds.contains(topRight)
+                && extendedBounds.contains(bottomLeft)
+                && extendedBounds.contains(bottomRight);
+    }
+
 }

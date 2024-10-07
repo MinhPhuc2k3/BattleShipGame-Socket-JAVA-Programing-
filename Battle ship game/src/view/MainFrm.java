@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package view;
 
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
@@ -134,7 +130,6 @@ public class MainFrm extends javax.swing.JFrame {
 
     private void btnPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayActionPerformed
         this.dispose();
-        sound = new Sound();
         sound.soundButtonClick();
         ReadyFrm readyFrm = new ReadyFrm();
         readyFrm.showWindow();
@@ -145,7 +140,8 @@ public class MainFrm extends javax.swing.JFrame {
         this.setLocationRelativeTo(null);
         this.setResizable(false);
         this.setVisible(true);
-        
+        sound = new Sound();
+        sound.soundBackground();
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

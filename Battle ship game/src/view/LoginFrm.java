@@ -112,13 +112,14 @@ public class LoginFrm extends javax.swing.JFrame {
         this.setResizable(false);
         this.setVisible(true);
         sound = new Sound();
-        sound.soundBackground();
+//        sound.soundBackground();
     }
 
 
     private void linkDangKyMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_linkDangKyMouseClicked
         this.dispose();
-        sound.stop();
+        sound.soundButtonClick();
+//        sound.stop();
         RegisterFrm frm = new RegisterFrm();
         frm.showWindow();
     }//GEN-LAST:event_linkDangKyMouseClicked

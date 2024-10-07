@@ -28,13 +28,12 @@ public class RegisterFrm extends javax.swing.JFrame {
         txtRetypedPass = new javax.swing.JPasswordField();
         jLabel4 = new javax.swing.JLabel();
         txtEmail = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        btnDangKy = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
         linkDangNhap = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setPreferredSize(new java.awt.Dimension(451, 380));
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         lblDangKy.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
@@ -73,11 +72,16 @@ public class RegisterFrm extends javax.swing.JFrame {
         getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(51, 198, 99, 28));
         getContentPane().add(txtEmail, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 198, 200, 28));
 
-        jButton1.setBackground(new java.awt.Color(102, 255, 102));
-        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jButton1.setForeground(new java.awt.Color(255, 255, 255));
-        jButton1.setText("Đăng ký");
-        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(162, 260, 127, 36));
+        btnDangKy.setBackground(new java.awt.Color(102, 255, 102));
+        btnDangKy.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDangKy.setForeground(new java.awt.Color(255, 255, 255));
+        btnDangKy.setText("Đăng ký");
+        btnDangKy.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDangKyActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btnDangKy, new org.netbeans.lib.awtextra.AbsoluteConstraints(162, 260, 127, 36));
 
         jLabel5.setForeground(new java.awt.Color(153, 153, 153));
         jLabel5.setText("Đã có tài khoản?");
@@ -105,10 +109,14 @@ public class RegisterFrm extends javax.swing.JFrame {
 
     private void linkDangNhapMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_linkDangNhapMouseClicked
         this.dispose();
-        sound.stop();
+        sound.soundButtonClick();
         LoginFrm frm = new LoginFrm();
         frm.showWindow();
     }//GEN-LAST:event_linkDangNhapMouseClicked
+
+    private void btnDangKyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDangKyActionPerformed
+        sound.soundButtonClick();
+    }//GEN-LAST:event_btnDangKyActionPerformed
 
     public void showWindow() {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -116,11 +124,10 @@ public class RegisterFrm extends javax.swing.JFrame {
         this.setResizable(false);
         this.setVisible(true);
         sound = new Sound();
-        sound.soundBackground();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
+    private javax.swing.JButton btnDangKy;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
