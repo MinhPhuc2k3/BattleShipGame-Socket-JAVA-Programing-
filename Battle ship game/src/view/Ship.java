@@ -2,11 +2,13 @@ package view;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.List;
+import java.awt.image.BufferedImage;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.border.LineBorder;
@@ -21,19 +23,19 @@ public class Ship extends DraggableComponent {
     private BattleShipGrid grid;
     private ReadyFrm readyFrm;
     private Sound sound;
+    private BufferedImage image;
 
     public Ship() {
     }
     
-    public Ship(int length, BattleShipGrid grid, ReadyFrm readyFrm, int cellSize) {
+    public Ship(int length, BattleShipGrid grid, int cellSize) {
         this.length = length;
         this.grid = grid;
-        this.readyFrm = readyFrm;
         this.cellSize = cellSize;
         sound = new Sound();
         setOpaque(true);
         setBackground(Color.GRAY);
-        setBorder(new LineBorder(Color.CYAN, 2));
+        setBorder(new LineBorder(Color.CYAN, 1));
         setPreferredSize(new Dimension(length * cellSize, cellSize));  // Horizontal size
 
         // Store the initial position of the ship
@@ -58,12 +60,45 @@ public class Ship extends DraggableComponent {
         });
     }
 
+   @Override
+   protected void paintComponent(Graphics g) {
+       Graphics2D g2d = (Graphics2D) g;
+       g2d.clearRect(0, 0, getWidth(), getHeight());
+       if (image != null) {
+//           setAutoSizeDimension();
+           g2d.drawImage(image, 0, 0, getWidth(), getHeight(), this);
+       } else {
+           g2d.setColor(getBackground());
+           g2d.fillRect(0, 0, getWidth(), getHeight());
+       }
+   }
+
+    public void setImage(BufferedImage image) {
+        this.image = image;
+    }
+    
+    public void setReadyFrm(ReadyFrm readyFrm) {
+        this.readyFrm = readyFrm;
+    }
+
+    public Point getInitialPosition() {
+        return initialPosition;
+    }
+
     public void setGrid(BattleShipGrid grid) {
         this.grid = grid;
     }
 
+    public BattleShipGrid getGrid() {
+        return grid;
+    }
+
     public void setCellSize(int cellSize) {
         this.cellSize = cellSize;
+    }
+
+    public int getCellSize() {
+        return cellSize;
     }
     
     public void setHorizontal(boolean isHorizontal) {
@@ -83,23 +118,28 @@ public class Ship extends DraggableComponent {
         return length;
     }
 
+    public void setLength(int length) {
+        this.length = length;
+    }
+    
     // Rotate the ship between horizontal and vertical
     public void rotate() {
         if (isHorizontal) {
-            setPreferredSize(new Dimension(50, length * 50));  // Vertical size
+            setPreferredSize(new Dimension(cellSize, length * cellSize));  // Vertical size
         } else {
-            setPreferredSize(new Dimension(length * 50, 50));  // Horizontal size
+            setPreferredSize(new Dimension(length * cellSize, cellSize));  // Horizontal size
         }
-        isHorizontal = !isHorizontal;
         setSize(getPreferredSize());
+        
         revalidate();
         repaint();
+        isHorizontal = !isHorizontal;
     }
 
     private void handleDrop() {
         // Get the current position of the ship
         Point shipPosition = getLocation();
-        int cellSize = 50;
+//        int cellSize = 50;
 
         if (isInsideGrid(shipPosition)) {
             int gridx = (int) ((shipPosition.getX() - grid.getX()) / cellSize) * cellSize + grid.getX();
@@ -125,7 +165,7 @@ public class Ship extends DraggableComponent {
     }
 
     public boolean isInsideGrid(Point dropPoint) {
-        int cellSize = 50; // Kích thước của 1 ô vuông
+//        int cellSize = 50; // Kích thước của 1 ô vuông
         Rectangle gridBounds = grid.getBounds();
 
         // Mở rộng gridBounds thêm 50 pixel ở mỗi cạnh
