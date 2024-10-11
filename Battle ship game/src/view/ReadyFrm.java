@@ -1,16 +1,20 @@
 package view;
 
 import java.awt.BorderLayout;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import utils.ImageManager;
 import utils.Sound;
 
 public class ReadyFrm extends JFrame {
@@ -22,6 +26,7 @@ public class ReadyFrm extends JFrame {
     private JButton btnReady;
     private JButton btnRandom;
     private Sound sound;
+    private String[] images = {ImageManager.SHIP_SIZE_5, ImageManager.SHIP_SIZE_4, ImageManager.SHIP_SIZE_3_1, ImageManager.SHIP_SIZE_3_2, ImageManager.SHIP_SIZE_2};
 
     public ReadyFrm() {
         setTitle("Battleship Game");
@@ -29,6 +34,7 @@ public class ReadyFrm extends JFrame {
         setSize(800, 700);
         sound = new Sound();
         btnReturn = new JButton("Quay lại");
+        btnReturn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         JPanel pnTop = new JPanel();
         pnTop.setLayout(new FlowLayout(FlowLayout.LEFT));
         pnTop.setPreferredSize(new Dimension(getWidth(), 60));
@@ -59,20 +65,26 @@ public class ReadyFrm extends JFrame {
 
         // Add ships
         ships = new ArrayList<>();
-        ships.add(new Ship(5, grid, this, 50));
-        ships.add(new Ship(4, grid, this, 50));
-        ships.add(new Ship(3, grid, this, 50));
-        ships.add(new Ship(3, grid, this, 50));
-        ships.add(new Ship(2, grid, this, 50));
+        ships.add(new Ship(5, grid, 50));
+        ships.add(new Ship(4, grid, 50));
+        ships.add(new Ship(3, grid, 50));
+        ships.add(new Ship(3, grid, 50));
+        ships.add(new Ship(2, grid, 50));
 
         int offset = 10;
         int xPlace = 5;
         int yPlace = 5;
+        int imageFile = 0;
+        BufferedImage img;
         for (Ship ship : ships) {
             pnMain.add(ship);
             ship.setSize(50 * ship.getLength(), 50);
             ship.setLocation(xPlace, yPlace + 15);
             ship.setInitialPosition(new Point(ship.getX(), ship.getY()));
+            ship.setReadyFrm(this);
+            img = ImageManager.getImage(images[imageFile]);
+//            ship.setImage(img);
+            imageFile++;
             yPlace += ship.getHeight() + offset;
             pnMain.repaint();
         }
@@ -80,8 +92,10 @@ public class ReadyFrm extends JFrame {
         pnBottom.setLayout(new FlowLayout());
         btnRandom = new JButton("Ngẫu nhiên");
         btnRandom.setPreferredSize(new Dimension(100, 40));
+        btnRandom.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnReady = new JButton("Sẵn sàng");
         btnReady.setPreferredSize(new Dimension(100, 40));
+        btnReady.setCursor(new Cursor(Cursor.HAND_CURSOR));
         pnBottom.add(btnRandom);
         pnBottom.add(btnReady);
         btnRandom.addActionListener(new ActionListener() {
@@ -96,20 +110,7 @@ public class ReadyFrm extends JFrame {
         btnReady.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                List<Ship> coordinationsOnScreen = new ArrayList<>();
-                for(Ship s: ships) {
-                    Point p = s.getLocation();
-                    int px = (int) (p.getX()-grid.getLocation().getX())/grid.getCellSize();
-                    int py = (int) (p.getY()-grid.getLocation().getY())/grid.getCellSize();
-                    Ship newShip = new Ship();
-                    newShip.setLocation(px, py);
-                    newShip.setHorizontal(s.isHorizontal());
-                    coordinationsOnScreen.add(newShip);
-                }
-                BattleViewFrm battleView = new BattleViewFrm(coordinationsOnScreen);
-                battleView.showWindow();
-                ReadyFrm.this.dispose();  
-                sound.stop();
+                btnReaddyactionPerformed();
             }
         });
         this.add(pnBottom, BorderLayout.SOUTH);
@@ -122,6 +123,15 @@ public class ReadyFrm extends JFrame {
             }
         }
         return false;
+    }
+
+    private boolean isAllShipPlaced() {
+        for (Ship s : ships) {
+            if (s.getLocation().equals(s.getInitialPosition())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void randomizeShips() {
@@ -152,6 +162,34 @@ public class ReadyFrm extends JFrame {
                 }
             }
         }
+    }
+
+    private void btnReaddyactionPerformed() {
+        if (!isAllShipPlaced()) {
+            JOptionPane.showMessageDialog(null,
+                    "Vui lòng xếp thuyền vào các ô trên lưới", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        int[][] gridState = new int[10][10];
+        for (Ship s : ships) {
+            int startX = (s.getX() - grid.getX()) / grid.getCellSize();
+            int startY = (s.getY() - grid.getY()) / grid.getCellSize();
+            if (s.isHorizontal()) {
+                for (int i = startX; i < startX + s.getLength(); i++) {
+                    gridState[startY][i] = 1; 
+                }
+            } else {
+                for (int i = startY; i < startY + s.getLength(); i++) {
+                    gridState[i][startX] = 1; // Mark grid cell as occupied
+                }
+            }
+        }
+        grid.setGridState(gridState);
+        sound.soundButtonClick();
+        ReadyFrm.this.dispose();
+
+        BattleViewFrm battleView = new BattleViewFrm(ships);
+        battleView.showWindow();
     }
 
     private void btnActionPerformed() {

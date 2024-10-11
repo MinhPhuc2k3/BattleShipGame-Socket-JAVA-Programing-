@@ -14,21 +14,33 @@ import javax.swing.SwingUtilities;
 public class BattleShipGrid extends JPanel {
 
     private static final int GRID_SIZE = 10;
-    private List<Point> coordinations;
     private int cellSize;
+    private int [][] gridState; // 0 = empty, 1 = occupied by a ship
+    private List<Ship> ships;
     
     public BattleShipGrid(int cellSize) {
         this.cellSize = cellSize;
+        this.gridState = new int[GRID_SIZE][GRID_SIZE];
         setLayout(new GridLayout(GRID_SIZE, GRID_SIZE));
         setPreferredSize(new Dimension(GRID_SIZE * cellSize, GRID_SIZE * cellSize));
-        coordinations = new ArrayList<>();
-//        int idxX = 0, idxY = 0;
         for (int i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
             JPanel cell = new JPanel();
             cell.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             cell.setPreferredSize(new Dimension(cellSize, cellSize));  // Adjust cell size
             add(cell);
         }
+    }
+
+    public void setGridState(int[][] gridState) {
+        this.gridState = gridState;
+    }
+
+    public int[][] getGridState() {
+        return gridState;
+    }
+    
+    public void setShips(List<Ship> ships) {
+        this.ships = ships;
     }
 
     public int getCellSize() {
