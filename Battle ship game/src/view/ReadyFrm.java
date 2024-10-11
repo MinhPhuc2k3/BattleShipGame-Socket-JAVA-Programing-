@@ -126,14 +126,14 @@ public class ReadyFrm extends JFrame {
     }
 
     private boolean isAllShipPlaced() {
-        for(Ship s : ships) {
-            if(s.getLocation().equals(s.getInitialPosition())) {
+        for (Ship s : ships) {
+            if (s.getLocation().equals(s.getInitialPosition())) {
                 return false;
             }
         }
         return true;
     }
-    
+
     private void randomizeShips() {
         int cellSize = 50;
         int gridSize = 10;  // Assuming a 10x10 grid
@@ -165,14 +165,29 @@ public class ReadyFrm extends JFrame {
     }
 
     private void btnReaddyactionPerformed() {
-        if(!isAllShipPlaced()) {
-            JOptionPane.showMessageDialog(null, 
+        if (!isAllShipPlaced()) {
+            JOptionPane.showMessageDialog(null,
                     "Vui lòng xếp thuyền vào các ô trên lưới", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        int[][] gridState = new int[10][10];
+        for (Ship s : ships) {
+            int startX = (s.getX() - grid.getX()) / grid.getCellSize();
+            int startY = (s.getY() - grid.getY()) / grid.getCellSize();
+            if (s.isHorizontal()) {
+                for (int i = startX; i < startX + s.getLength(); i++) {
+                    gridState[startY][i] = 1; 
+                }
+            } else {
+                for (int i = startY; i < startY + s.getLength(); i++) {
+                    gridState[i][startX] = 1; // Mark grid cell as occupied
+                }
+            }
+        }
+        grid.setGridState(gridState);
         sound.soundButtonClick();
         ReadyFrm.this.dispose();
-        
+
         BattleViewFrm battleView = new BattleViewFrm(ships);
         battleView.showWindow();
     }

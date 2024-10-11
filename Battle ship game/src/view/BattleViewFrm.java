@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Point;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.List;
@@ -42,16 +43,13 @@ public class BattleViewFrm extends JFrame {
         pnMain.add(leftGrid);
         leftGrid.setLocation(10, 10);
         for (Ship ship : ships) {
-            System.out.println("Location of ship has size: " + ship.getLength());
-
+            leftGrid.setGridState(ship.getGrid().getGridState());
             // Set the new cell size for the ship to match the smaller grid
             ship.setCellSize(20);
 
             // Convert the ship's position from the previous grid to the new grid system
             int newWidth = ship.getWidth() / ship.getGrid().getCellSize() * ship.getCellSize();
             int newHeight = ship.getHeight() / ship.getGrid().getCellSize() * ship.getCellSize();
-            System.out.println("new width: " + newWidth);
-            System.out.println("new height: " + newHeight);
             Point p = ship.getLocation();
             int px = (int) ((p.getX() - ship.getGrid().getLocation().getX()) / ship.getGrid().getCellSize()) * leftGrid.getCellSize();
             int py = (int) ((p.getY() - ship.getGrid().getLocation().getY()) / ship.getGrid().getCellSize()) * leftGrid.getCellSize();
@@ -61,7 +59,6 @@ public class BattleViewFrm extends JFrame {
 
             // Set the location of the ship on the left grid
             ship.setLocation(px + leftGrid.getX(), py + leftGrid.getY());
-            System.out.println("X: " + ship.getX() + "- Y: " + ship.getY());
 
             // Set the grid to the left grid
             ship.setGrid(leftGrid);
@@ -79,7 +76,12 @@ public class BattleViewFrm extends JFrame {
             pnMain.setComponentZOrder(ship, 0);
             pnMain.repaint();
         }
-
+        for(int i = 0; i < 10; i++) {
+            for(int j = 0; j < 10; j++) {
+                System.out.print(leftGrid.getGridState()[i][j]+ " ");
+            }
+            System.out.println("");
+        }
         // Right grid (for gameplay)
         rightGrid = new BattleShipGrid(50);
         rightGrid.setBounds(50, 50, 500, 500);
@@ -87,6 +89,28 @@ public class BattleViewFrm extends JFrame {
         pnMain.add(rightGrid);
         Point centerPoint = new Point((getWidth() / 2) - (rightGrid.getWidth() / 2), (getHeight() / 2) - (rightGrid.getHeight() / 2));
         rightGrid.setLocation(centerPoint);
+        rightGrid.addMouseListener(new MouseListener(){
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                Point clickPoint = e.getPoint();
+                int cellSize = rightGrid.getCellSize();
+                int gridX = (int) (clickPoint.getX() / cellSize);
+                int gridY = (int) (clickPoint.getY() / cellSize);
+                System.out.println("Click point: "+ gridX+"-"+gridY);
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {}
+
+            @Override
+            public void mouseReleased(MouseEvent e) {}
+
+            @Override
+            public void mouseEntered(MouseEvent e) {}
+
+            @Override
+            public void mouseExited(MouseEvent e) {}
+        });
         // Add panel to frame
         add(pnMain, BorderLayout.CENTER);
     }

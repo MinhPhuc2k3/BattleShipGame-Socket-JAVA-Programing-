@@ -17,7 +17,7 @@ public class MainFrm extends javax.swing.JFrame {
     
     public MainFrm() {
         initComponents();
-        backgroundImg = ImageManager.getImage(ImageManager.BACKGROUND_IMAGE);
+        backgroundImg = ImageManager.getImage(ImageManager.MAIN_BACKGROUND_IMAGE);
     }
 
     @SuppressWarnings("unchecked")
@@ -25,7 +25,7 @@ public class MainFrm extends javax.swing.JFrame {
     private void initComponents() {
 
         pnMain = pnMain = new CustomPanel();
-        jLabel1 = new javax.swing.JLabel();
+        lblAvarta = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         lblRank = new javax.swing.JLabel();
@@ -35,12 +35,17 @@ public class MainFrm extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jLabel1.setBackground(new java.awt.Color(204, 204, 204));
-        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Avatar");
-        jLabel1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
-        jLabel1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        lblAvarta.setBackground(new java.awt.Color(204, 204, 204));
+        lblAvarta.setForeground(new java.awt.Color(255, 255, 255));
+        lblAvarta.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblAvarta.setText("Avatar");
+        lblAvarta.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+        lblAvarta.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        lblAvarta.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                lblAvartaMouseClicked(evt);
+            }
+        });
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -105,7 +110,7 @@ public class MainFrm extends javax.swing.JFrame {
                 .addGroup(pnMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(pnMainLayout.createSequentialGroup()
                         .addGap(28, 28, 28)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(lblAvarta, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(lblRank, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(32, 32, 32)
@@ -127,7 +132,7 @@ public class MainFrm extends javax.swing.JFrame {
                     .addComponent(btnPlay)
                     .addGroup(pnMainLayout.createSequentialGroup()
                         .addGroup(pnMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblAvarta, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(lblRank)
                             .addComponent(lblSetting)
                             .addComponent(lblLogout))
@@ -175,6 +180,13 @@ public class MainFrm extends javax.swing.JFrame {
         LoginFrm login = new LoginFrm();
         login.showWindow();
     }//GEN-LAST:event_lblLogoutMouseClicked
+
+    private void lblAvartaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblAvartaMouseClicked
+        this.setVisible(false);
+        sound.stop();
+        MatchHistoryFrm history = new MatchHistoryFrm(this);
+        history.showWindow();
+    }//GEN-LAST:event_lblAvartaMouseClicked
     
     public void draw(Graphics g) {
         g.drawImage(backgroundImg, 0, 0, getWidth(), getHeight(),null);
@@ -209,9 +221,9 @@ public class MainFrm extends javax.swing.JFrame {
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnPlay;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
+    private javax.swing.JLabel lblAvarta;
     private javax.swing.JLabel lblLogout;
     private javax.swing.JLabel lblRank;
     private javax.swing.JLabel lblSetting;

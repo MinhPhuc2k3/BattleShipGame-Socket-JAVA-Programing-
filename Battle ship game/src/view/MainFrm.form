@@ -48,7 +48,7 @@
                   <Group type="103" groupAlignment="1" attributes="0">
                       <Group type="102" attributes="0">
                           <EmptySpace min="-2" pref="28" max="-2" attributes="0"/>
-                          <Component id="jLabel1" min="-2" pref="71" max="-2" attributes="0"/>
+                          <Component id="lblAvarta" min="-2" pref="71" max="-2" attributes="0"/>
                           <EmptySpace max="32767" attributes="0"/>
                           <Component id="lblRank" min="-2" pref="37" max="-2" attributes="0"/>
                           <EmptySpace min="-2" pref="32" max="-2" attributes="0"/>
@@ -75,7 +75,7 @@
                       <Component id="btnPlay" min="-2" max="-2" attributes="0"/>
                       <Group type="102" attributes="0">
                           <Group type="103" groupAlignment="0" attributes="0">
-                              <Component id="jLabel1" min="-2" pref="57" max="-2" attributes="0"/>
+                              <Component id="lblAvarta" min="-2" pref="57" max="-2" attributes="0"/>
                               <Component id="lblRank" min="-2" max="-2" attributes="0"/>
                               <Component id="lblSetting" min="-2" max="-2" attributes="0"/>
                               <Component id="lblLogout" min="-2" max="-2" attributes="0"/>
@@ -90,7 +90,7 @@
         </DimensionLayout>
       </Layout>
       <SubComponents>
-        <Component class="javax.swing.JLabel" name="jLabel1">
+        <Component class="javax.swing.JLabel" name="lblAvarta">
           <Properties>
             <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color blue="cc" green="cc" red="cc" type="rgb"/>
@@ -109,6 +109,9 @@
               <Color id="Hand Cursor"/>
             </Property>
           </Properties>
+          <Events>
+            <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="lblAvartaMouseClicked"/>
+          </Events>
         </Component>
         <Container class="javax.swing.JScrollPane" name="jScrollPane1">
           <AuxValues>
