@@ -1,5 +1,7 @@
 package controller.server;
 
+import javax.swing.JFrame;
+
 /**
  *
  * @author MINH PHUC
@@ -7,5 +9,7 @@ package controller.server;
 public class ServerRunner {
     public static void main(String[] args) {
         ServerControl controller = new ServerControl();
+        JFrame view  = new  JFrame();
+        
     }
 }

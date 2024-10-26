@@ -109,6 +109,8 @@ public class ClientListener implements Runnable {
                 matchHistoryDAO.updateMatchHistory(matchHistory);
                 playerDAO.updatePoint(player, -1);
                 playerDAO.updatePoint(x.player, 1);
+                Room.playerMap.remove(x.player.getUsername());
+                Room.playerMap.remove(player.getUsername());
                 
             }
             x.output.writeObject(message);

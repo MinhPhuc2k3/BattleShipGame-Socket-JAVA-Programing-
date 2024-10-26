@@ -232,11 +232,12 @@ public class MainFrm extends javax.swing.JFrame {
             }
             return 1;
         });
-        for (Player player : players) {
+        for (Player tmpPlayer : players) {
+            if(tmpPlayer.getId()!=this.player.getId())
             onlineTableModel.addRow(new Object[]{
-                player.getUsername(),
-                (markOnline.contains(player.getUsername()) == true ? "Online" : "Offline"),
-                player.getDiem()});
+                tmpPlayer.getUsername(),
+                (markOnline.contains(tmpPlayer.getUsername()) == true ? "Online" : "Offline"),
+                tmpPlayer.getDiem()});
         }
         for(Player player: playerList){
             getPlayerById.put(player.getId(), player);
