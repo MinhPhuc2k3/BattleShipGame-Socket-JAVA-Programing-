@@ -1,8 +1,24 @@
 package view;
 
+import battle.ship.model.Player;
+import controller.client.ClientControl;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 import utils.ImageManager;
 import utils.Sound;
 
@@ -12,12 +28,56 @@ import utils.Sound;
  */
 public class MainFrm extends javax.swing.JFrame {
 
+    private ClientControl control;
+    private Player player;
+    private List<Player> playerList;
+    private Map<Integer, Player> getPlayerById;
+    private Set<String> markOnline;
+
     private Sound sound;
     private BufferedImage backgroundImg;
-    
-    public MainFrm() {
+    private DefaultTableModel onlineTableModel;
+    private DefaultTableCellRenderer renderer;
+
+    public MainFrm(ClientControl control, Player player) {
         initComponents();
+        this.control = control;
+        this.player = player;
+        this.lblAvarta.setText(player.getUsername());
+        markOnline = new HashSet<>();
         backgroundImg = ImageManager.getImage(ImageManager.MAIN_BACKGROUND_IMAGE);
+        onlineTableModel = (DefaultTableModel) playerTable.getModel();
+        this.control.setMainFrm(this);
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                control.closeConnect();
+            }
+
+        });
+        renderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                // Gọi phương thức gốc để giữ nguyên tính năng của bảng
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+                // Kiểm tra giá trị của cột trạng thái ("Online"/"Offline")
+                String status = (String) table.getValueAt(row, 1); // Cột trạng thái (giả định là cột thứ 2)
+
+                if (status.equals("Online")) {
+                    c.setBackground(Color.GREEN);  // Đặt nền màu xanh cho các dòng online
+                } else {
+                    c.setBackground(Color.LIGHT_GRAY);  // Đặt nền màu xám cho các dòng offline
+                }
+
+                // Nếu hàng được chọn, giữ màu nền khi chọn
+                if (isSelected) {
+                    c.setBackground(table.getSelectionBackground());
+                }
+
+                return c;
+            }
+        };
     }
 
     @SuppressWarnings("unchecked")
@@ -27,7 +87,7 @@ public class MainFrm extends javax.swing.JFrame {
         pnMain = pnMain = new CustomPanel();
         lblAvarta = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        playerTable = new javax.swing.JTable();
         lblRank = new javax.swing.JLabel();
         lblSetting = new javax.swing.JLabel();
         lblLogout = new javax.swing.JLabel();
@@ -47,7 +107,7 @@ public class MainFrm extends javax.swing.JFrame {
             }
         });
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        playerTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
@@ -63,7 +123,8 @@ public class MainFrm extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
-        jScrollPane1.setViewportView(jTable1);
+        playerTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        jScrollPane1.setViewportView(playerTable);
 
         lblRank.setBackground(new java.awt.Color(255, 255, 255));
         lblRank.setForeground(new java.awt.Color(255, 255, 255));
@@ -157,16 +218,66 @@ public class MainFrm extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    public void updatePlayerTable(List<Player> players, List<Player> playersOnline) {
+        playerList = players;
+        markOnline.clear();
+        getPlayerById = new HashMap<>();
+        onlineTableModel.setRowCount(0);
+        for (Player player : playersOnline) {
+            markOnline.add(player.getUsername());
+        }
+        Collections.sort(players, (o1, o2) -> {
+            if (markOnline.contains(o1.getUsername()) == true) {
+                return -1;
+            }
+            return 1;
+        });
+        for (Player player : players) {
+            onlineTableModel.addRow(new Object[]{
+                player.getUsername(),
+                (markOnline.contains(player.getUsername()) == true ? "Online" : "Offline"),
+                player.getDiem()});
+        }
+        for(Player player: playerList){
+            getPlayerById.put(player.getId(), player);
+            System.out.println(getPlayerById.get(player.getId()).getUsername());
+        }
+        
+        for (int i = 0; i < playerTable.getColumnCount(); i++) {
+            playerTable.getColumnModel().getColumn(i).setCellRenderer(renderer);
+        }
+    }
+
+    public int showRequestBattle(Player opponent) {
+        return JOptionPane.showConfirmDialog(this, opponent.getUsername() + " muốn chơi với bạn!", "Xác nhận", JOptionPane.YES_NO_OPTION);
+    }
+
+    public void playGame(boolean accept) {
+        if (accept) {
+            ReadyFrm readyFrm = new ReadyFrm(control, this);
+            readyFrm.showWindow();
+        } else {
+            JOptionPane.showMessageDialog(this, "Đối thủ không chấp nhận chơi");
+        }
+    }
+
     private void btnPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlayActionPerformed
-        this.dispose();
         sound.stop();
         sound.soundButtonClick();
-        ReadyFrm readyFrm = new ReadyFrm();
-        readyFrm.showWindow();
+        int row = playerTable.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showConfirmDialog(this, "Vui lòng chọn một đối thủ trước");
+        } else {
+            Player opponent = playerList.get(row);
+            System.out.println(opponent.getUsername());
+            control.battleRequire(opponent);
+        }
     }//GEN-LAST:event_btnPlayActionPerformed
 
     private void lblRankMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblRankMouseClicked
         sound.soundButtonClick();
+        RankingFrm ranking = new RankingFrm(control, this);
+        ranking.showWindow();
     }//GEN-LAST:event_lblRankMouseClicked
 
     private void lblSettingMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblSettingMouseClicked
@@ -176,32 +287,33 @@ public class MainFrm extends javax.swing.JFrame {
     private void lblLogoutMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblLogoutMouseClicked
         sound.stop();
         sound.soundButtonClick();
-        this.dispose();
-        LoginFrm login = new LoginFrm();
+        LoginFrm login = new LoginFrm(control);
+        control.logout();
         login.showWindow();
+        this.dispose();
     }//GEN-LAST:event_lblLogoutMouseClicked
 
     private void lblAvartaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblAvartaMouseClicked
         this.setVisible(false);
         sound.stop();
-        MatchHistoryFrm history = new MatchHistoryFrm(this);
+        MatchHistoryFrm history = new MatchHistoryFrm(control, this, getPlayerById);
         history.showWindow();
     }//GEN-LAST:event_lblAvartaMouseClicked
-    
+
     public void draw(Graphics g) {
-        g.drawImage(backgroundImg, 0, 0, getWidth(), getHeight(),null);
+        g.drawImage(backgroundImg, 0, 0, getWidth(), getHeight(), null);
         pnMain.paintComponents(g);
     }
-    
+
 //    @Override
 //    public void paint(Graphics g) {
 //        super.paint(g); 
 //        draw(g);
 ////        repaint();
 //    }
-    
     // Custom panel for painting the background
     private class CustomPanel extends javax.swing.JPanel {
+
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);  // Calls the default painting of components
@@ -209,24 +321,24 @@ public class MainFrm extends javax.swing.JFrame {
             g.drawImage(backgroundImg, 0, 0, getWidth(), getHeight(), this);
         }
     }
-    
+
     public void showWindow() {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
         this.setResizable(false);
         this.setVisible(true);
         sound = new Sound();
-        sound.soundBackground();
+        //sound.soundBackground();
     }
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnPlay;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
     private javax.swing.JLabel lblAvarta;
     private javax.swing.JLabel lblLogout;
     private javax.swing.JLabel lblRank;
     private javax.swing.JLabel lblSetting;
+    private javax.swing.JTable playerTable;
     private javax.swing.JPanel pnMain;
     // End of variables declaration//GEN-END:variables
 }

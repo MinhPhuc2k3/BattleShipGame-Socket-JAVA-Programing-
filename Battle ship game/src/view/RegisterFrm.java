@@ -1,12 +1,14 @@
 package view;
 
+import controller.client.ClientControl;
 import utils.Sound;
 
 public class RegisterFrm extends javax.swing.JFrame {
 
     private Sound sound;
-    
-    public RegisterFrm() {
+    private ClientControl control;
+    public RegisterFrm(ClientControl control) {
+        this.control = control;
         initComponents();
     }
 
@@ -110,7 +112,7 @@ public class RegisterFrm extends javax.swing.JFrame {
     private void linkDangNhapMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_linkDangNhapMouseClicked
         this.dispose();
         sound.soundButtonClick();
-        LoginFrm frm = new LoginFrm();
+        LoginFrm frm = new LoginFrm(control);
         frm.showWindow();
     }//GEN-LAST:event_linkDangNhapMouseClicked
 

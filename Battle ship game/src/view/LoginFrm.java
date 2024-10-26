@@ -1,18 +1,20 @@
 package view;
 
+import controller.client.ClientControl;
+import dto.LoginDTO;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import javax.swing.JOptionPane;
 import utils.ImageManager;
 import utils.Sound;
-
 public class LoginFrm extends javax.swing.JFrame {
-
+    private ClientControl control;
     private Sound sound;
     private BufferedImage backgroundImg;
 
-    public LoginFrm() {
+    public LoginFrm(ClientControl control) {
+        this.control = control;
         backgroundImg = ImageManager.getImage(ImageManager.LOGIN_IMAGE);
-        
         initComponents();
     }
 
@@ -120,16 +122,22 @@ public class LoginFrm extends javax.swing.JFrame {
         this.dispose();
         sound.soundButtonClick();
 //        sound.stop();
-        RegisterFrm frm = new RegisterFrm();
+        RegisterFrm frm = new RegisterFrm(control);
         frm.showWindow();
     }//GEN-LAST:event_linkDangKyMouseClicked
 
     private void btnDangNhapActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDangNhapActionPerformed
         sound.stop();
         sound.soundButtonClick();
-        this.dispose();
-        MainFrm mainFrm = new MainFrm();
-        mainFrm.showWindow();
+        LoginDTO login = new LoginDTO(txtUsername.getText(), txtPass.getText());
+        control.login(login);
+        if(login.getPlayer() == null) JOptionPane.showMessageDialog(this, "Sai tên hoặc mật khẩu");
+        else {
+            JOptionPane.showMessageDialog(this, "Đăng nhập thành công ");
+            this.dispose();
+            MainFrm mainFrm = new MainFrm(control, login.getPlayer());
+            mainFrm.showWindow();
+        }
     }//GEN-LAST:event_btnDangNhapActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -1,5 +1,7 @@
 package view;
 
+import battle.ship.model.Ship;
+import controller.client.ClientControl;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -19,6 +21,8 @@ import utils.Sound;
 
 public class ReadyFrm extends JFrame {
 
+    private ClientControl control;
+    private MainFrm mainFrm;
     private BattleShipGrid grid;
     private List<Ship> ships;
     private JPanel pnMain;
@@ -28,7 +32,11 @@ public class ReadyFrm extends JFrame {
     private Sound sound;
     private String[] images = {ImageManager.SHIP_SIZE_5, ImageManager.SHIP_SIZE_4, ImageManager.SHIP_SIZE_3_1, ImageManager.SHIP_SIZE_3_2, ImageManager.SHIP_SIZE_2};
 
-    public ReadyFrm() {
+    public ReadyFrm(ClientControl control, MainFrm mainFrm) {
+        this.control = control;
+        this.mainFrm = mainFrm;
+        this.mainFrm.setVisible(false);
+        control.setReadyFrm(this);
         setTitle("Battleship Game");
         setLayout(new BorderLayout());
         setSize(800, 700);
@@ -65,11 +73,11 @@ public class ReadyFrm extends JFrame {
 
         // Add ships
         ships = new ArrayList<>();
-        ships.add(new Ship(5, grid, 50));
-        ships.add(new Ship(4, grid, 50));
-        ships.add(new Ship(3, grid, 50));
-        ships.add(new Ship(3, grid, 50));
-        ships.add(new Ship(2, grid, 50));
+        ships.add(new Ship(5, 5, grid, 50));
+        ships.add(new Ship(4, 4, grid, 50));
+        ships.add(new Ship(3, 3, grid, 50));
+        ships.add(new Ship(2, 3, grid, 50));
+        ships.add(new Ship(1, 2, grid, 50));
 
         int offset = 10;
         int xPlace = 5;
@@ -176,26 +184,30 @@ public class ReadyFrm extends JFrame {
             int startY = (s.getY() - grid.getY()) / grid.getCellSize();
             if (s.isHorizontal()) {
                 for (int i = startX; i < startX + s.getLength(); i++) {
-                    gridState[startY][i] = 1; 
+                    gridState[startY][i] = s.getId();
                 }
             } else {
                 for (int i = startY; i < startY + s.getLength(); i++) {
-                    gridState[i][startX] = 1; // Mark grid cell as occupied
+                    gridState[i][startX] = s.getId(); // Mark grid cell as occupied
                 }
             }
         }
         grid.setGridState(gridState);
-        sound.soundButtonClick();
-        ReadyFrm.this.dispose();
+        control.readyRequire();
 
-        BattleViewFrm battleView = new BattleViewFrm(ships);
+        sound.soundButtonClick();
+
+    }
+
+    public void playGame(int turn) {
+        ReadyFrm.this.dispose();
+        BattleViewFrm battleView = new BattleViewFrm(control, ships, turn);
         battleView.showWindow();
     }
 
     private void btnActionPerformed() {
+        mainFrm.setVisible(true);
         this.dispose();
-        MainFrm main = new MainFrm();
-        main.showWindow();
     }
 
     public void showWindow() {

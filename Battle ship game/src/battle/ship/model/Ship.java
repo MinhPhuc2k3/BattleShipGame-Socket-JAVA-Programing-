@@ -1,4 +1,4 @@
-package view;
+package battle.ship.model;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -13,9 +13,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.border.LineBorder;
 import utils.Sound;
+import view.BattleShipGrid;
+import view.DraggableComponent;
+import view.ReadyFrm;
 
 public class Ship extends DraggableComponent {
-
+    private int id;
     private int length;
     private int cellSize;
     private boolean isHorizontal = true;  // Initial orientation
@@ -28,7 +31,8 @@ public class Ship extends DraggableComponent {
     public Ship() {
     }
     
-    public Ship(int length, BattleShipGrid grid, int cellSize) {
+    public Ship(int id, int length, BattleShipGrid grid, int cellSize) {
+        this.id = id;
         this.length = length;
         this.grid = grid;
         this.cellSize = cellSize;
@@ -59,7 +63,7 @@ public class Ship extends DraggableComponent {
             }
         });
     }
-
+    
    @Override
    protected void paintComponent(Graphics g) {
        Graphics2D g2d = (Graphics2D) g;
@@ -74,6 +78,14 @@ public class Ship extends DraggableComponent {
 
     public void setImage(BufferedImage image) {
         this.image = image;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
     
     public void setReadyFrm(ReadyFrm readyFrm) {

@@ -1,5 +1,8 @@
 package view;
 
+import battle.ship.model.MatchHistory;
+import battle.ship.model.Player;
+import controller.client.ClientControl;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -9,6 +12,9 @@ import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Map;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -29,11 +35,17 @@ public class MatchHistoryFrm extends JFrame {
     private JTable tblHistory;
     private BufferedImage backgroundImg;
     private BufferedImage nameTag;
-
-    public MatchHistoryFrm(MainFrm frm) {
+    private List<Player> playerList;
+    private Map<Integer, Player> getPlayerById;
+    private ClientControl control;
+    
+    public MatchHistoryFrm(ClientControl control, MainFrm frm, Map<Integer, Player> getPlayerById) {
         super("History");
         this.setSize(700, 600);
         this.mainFrm = frm;
+        this.control = control;
+        this.getPlayerById = getPlayerById;
+        control.setHistoryFrm(this);
         this.backgroundImg = ImageManager.getImage(ImageManager.HISTORY_BACKGROUND_IMAGE);
         this.nameTag = ImageManager.getImage(ImageManager.NAME_TAG);
         this.setContentPane(new CustomPanel());
@@ -74,7 +86,7 @@ public class MatchHistoryFrm extends JFrame {
         pnMain = new JPanel();
         pnMain.setOpaque(false);
         pnMain.setLayout(new BoxLayout(pnMain, BoxLayout.Y_AXIS));
-        lblPlayerName = new JLabel("Thuyền trưởng");
+        lblPlayerName = new JLabel("Thuyền trưởng: " + control.getPlayer().getUsername());
         lblPlayerName.setAlignmentX(CENTER_ALIGNMENT);
         lblTotalsWin = new JLabel("Thắng: 0");
         lblTotalsWin.setAlignmentX(CENTER_ALIGNMENT);
@@ -102,10 +114,22 @@ public class MatchHistoryFrm extends JFrame {
         JScrollPane scrollPane = new JScrollPane(tblHistory);
         tablePanel.add(scrollPane); // Add table to the centered panel
         pnMain.add(tablePanel);
-
         add(pnMain, BorderLayout.CENTER);
     }
-
+    
+    public void renderHistoryTable(List<MatchHistory> histories){
+        DefaultTableModel dtm = (DefaultTableModel) tblHistory.getModel();
+        dtm.setRowCount(0);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
+        for(MatchHistory match: histories){
+            if(match.getWiner().getId() == control.getPlayer().getId()){
+                dtm.addRow(new Object[]{sdf.format(match.getTime()), getPlayerById.get(match.getLoser().getId()).getUsername(), "Thắng"});
+            }else{
+                dtm.addRow(new Object[]{sdf.format(match.getTime()), getPlayerById.get(match.getWiner().getId()).getUsername(), "Thua"});
+            }
+        }
+    }
+    
     private void btnReturnActionPerformed() {
         this.dispose();
         mainFrm.setVisible(true);
@@ -116,6 +140,7 @@ public class MatchHistoryFrm extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);
         this.setVisible(true);
+        control.matchHistoryRequest();
     }
 
     private class CustomPanel extends javax.swing.JPanel {
