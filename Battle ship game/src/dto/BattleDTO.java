@@ -15,11 +15,22 @@ public class BattleDTO implements Serializable{
     private Player opponent;
     private boolean accept;
     private int status;
+    private boolean inGame;
     private static final long serialVersionUID = 1L;
     
     public static final int REQUEST = 0;
     public static final int RESPONSE = 1;
 
+    public boolean isInGame() {
+        return inGame;
+    }
+
+    public void setInGame(boolean inGame) {
+        this.inGame = inGame;
+    }
+
+    
+    
     public int getStatus() {
         return status;
     }

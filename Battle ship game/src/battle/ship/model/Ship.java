@@ -9,6 +9,8 @@ import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.border.LineBorder;
@@ -27,7 +29,8 @@ public class Ship extends DraggableComponent {
     private ReadyFrm readyFrm;
     private Sound sound;
     private BufferedImage image;
-
+    private static List<Color> listColor = new ArrayList<>();
+    
     public Ship() {
     }
     
@@ -38,7 +41,7 @@ public class Ship extends DraggableComponent {
         this.cellSize = cellSize;
         sound = new Sound();
         setOpaque(true);
-        setBackground(Color.GRAY);
+        setBackground(Ship.getColorById(id));
         setBorder(new LineBorder(Color.CYAN, 1));
         setPreferredSize(new Dimension(length * cellSize, cellSize));  // Horizontal size
 
@@ -198,5 +201,16 @@ public class Ship extends DraggableComponent {
                 && extendedBounds.contains(bottomLeft)
                 && extendedBounds.contains(bottomRight);
     }
-
+    
+    public static Color getColorById(int id){
+        if(listColor.isEmpty()){
+            listColor.add(Color.GREEN);
+            listColor.add(Color.DARK_GRAY);
+            listColor.add(new Color(94, 102, 55));
+            listColor.add(Color.MAGENTA);
+            listColor.add(Color.PINK);
+        }
+        return listColor.get(id-1);
+    }
+    
 }

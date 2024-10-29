@@ -110,9 +110,9 @@ public class ClientControl {
         }
     }
 
-    public void updateListUserResponse(List<Player> players, List<Player> playersOnline) {
+    public void updateListUserResponse(List<Player> players, List<Player> playersOnline, List<Player> playersInGame) {
         System.out.println("update danh sach");
-        mainFrm.updatePlayerTable(players, playersOnline);
+        mainFrm.updatePlayerTable(players, playersOnline, playersInGame);
     }
 
     public void updateListUserRequest() {
@@ -157,7 +157,7 @@ public class ClientControl {
             }
         } else if (message.getBattleDTO().getStatus() == BattleDTO.RESPONSE) {
             //System.out.println(player.getUsername()+"   get response");
-            mainFrm.playGame(message.getBattleDTO().isAccept());
+            mainFrm.playGame(message);
         }
     }
 
@@ -221,6 +221,9 @@ public class ClientControl {
                     msg.getShootDTO().setHit(true);
                 case 2 ->
                     msg.getShootDTO().setHit(false);
+                case 3->{
+                    return;
+                }
                 default -> {
                     msg.getShootDTO().setWin(true);
                     msg.getShootDTO().setHit(true);
@@ -269,5 +272,14 @@ public class ClientControl {
         System.out.println("Lich su dau");
         historyFrm.renderHistoryTable(message.getHistoryDTO().getMatchHistories());
     }
+ 
     
+    public void exitGameReponse(Message  message){
+        battleViewFrm.exitGame();
+        try {
+            output.writeObject(message);
+        } catch (IOException ex) {
+            Logger.getLogger(ClientControl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }

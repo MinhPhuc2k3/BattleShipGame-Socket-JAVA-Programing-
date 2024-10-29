@@ -4,12 +4,9 @@ import battle.ship.model.Ship;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.awt.Point;
-import java.util.ArrayList;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 
 public class BattleShipGrid extends JPanel {
 
@@ -59,7 +56,7 @@ public class BattleShipGrid extends JPanel {
         return cellSize;
     }
     
-    public boolean shooteArea(int x, int y){
-        return gridState[x][y]!=0;
+    public int shooteArea(int x, int y){
+        return gridState[x][y];
     }
 }

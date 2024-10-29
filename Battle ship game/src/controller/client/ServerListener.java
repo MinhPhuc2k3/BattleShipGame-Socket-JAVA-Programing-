@@ -35,12 +35,13 @@ public class ServerListener implements Runnable{
             try {
                 msg = (Message) input.readObject();
                 switch (msg.getCommand()) {
-                    case Message.UPDATEONLINE -> control.updateListUserResponse(msg.getPlayerDTO().getPlayers(), msg.getPlayerDTO().getPlayersOnline());
+                    case Message.UPDATEONLINE -> control.updateListUserResponse(msg.getPlayerDTO().getPlayers(), msg.getPlayerDTO().getPlayersOnline(), msg.getPlayerDTO().getPlayersInGame());
                     case Message.LOGOUT -> hasLogined = false;
                     case Message.BATTLE -> control.battleRespone(msg);
                     case Message.READY -> control.readyResponse(msg);
                     case Message.SHOOT -> control.shootRespone(msg);
                     case Message.MATCHHISTORY -> control.matchHistoryReponse(msg);
+                    case Message.EXITGAME -> control.exitGameReponse(msg);
                     default -> throw new AssertionError();
                 }
             } catch (IOException | ClassNotFoundException ex) {

@@ -16,8 +16,16 @@ public class PlayerDTO implements  Serializable{
     private static final long serialVersionUID = 1L;
     private List<Player> playersOnline;
     private List<Player> players;
-
+    private List<Player> playersInGame;
     public PlayerDTO() {
+    }
+
+    public List<Player> getPlayersInGame() {
+        return playersInGame;
+    }
+
+    public void setPlayersInGame(List<Player> playersInGame) {
+        this.playersInGame = playersInGame;
     }
 
     public List<Player> getPlayersOnline() {

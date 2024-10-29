@@ -2,12 +2,14 @@ package view;
 
 import battle.ship.model.Player;
 import controller.client.ClientControl;
+import dto.Message;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,24 +29,26 @@ import utils.Sound;
  * @author win
  */
 public class MainFrm extends javax.swing.JFrame {
-
+    
     private ClientControl control;
     private Player player;
     private List<Player> playerList;
     private Map<Integer, Player> getPlayerById;
     private Set<String> markOnline;
-
+    private Set<String> markInGame;
+    
     private Sound sound;
     private BufferedImage backgroundImg;
     private DefaultTableModel onlineTableModel;
     private DefaultTableCellRenderer renderer;
-
+    
     public MainFrm(ClientControl control, Player player) {
         initComponents();
         this.control = control;
         this.player = player;
         this.lblAvarta.setText(player.getUsername());
         markOnline = new HashSet<>();
+        markInGame = new HashSet<>();
         backgroundImg = ImageManager.getImage(ImageManager.MAIN_BACKGROUND_IMAGE);
         onlineTableModel = (DefaultTableModel) playerTable.getModel();
         this.control.setMainFrm(this);
@@ -53,7 +57,7 @@ public class MainFrm extends javax.swing.JFrame {
             public void windowClosing(WindowEvent e) {
                 control.closeConnect();
             }
-
+            
         });
         renderer = new DefaultTableCellRenderer() {
             @Override
@@ -66,20 +70,22 @@ public class MainFrm extends javax.swing.JFrame {
 
                 if (status.equals("Online")) {
                     c.setBackground(Color.GREEN);  // Đặt nền màu xanh cho các dòng online
-                } else {
+                } else if (status.equals("Offline")) {
                     c.setBackground(Color.LIGHT_GRAY);  // Đặt nền màu xám cho các dòng offline
+                } else {
+                    c.setBackground(Color.YELLOW);
                 }
 
                 // Nếu hàng được chọn, giữ màu nền khi chọn
                 if (isSelected) {
                     c.setBackground(table.getSelectionBackground());
                 }
-
+                
                 return c;
             }
         };
     }
-
+    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -218,28 +224,42 @@ public class MainFrm extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    public void updatePlayerTable(List<Player> players, List<Player> playersOnline) {
-        playerList = players;
+    public void updatePlayerTable(List<Player> players, List<Player> playersOnline, List<Player> playersInGame) {
+        playerList = new ArrayList<>();
+        for (Player tmp : players) {
+            if (tmp.getId() != player.getId()) {
+                playerList.add(tmp);
+            }
+        }
         markOnline.clear();
+        markInGame.clear();
         getPlayerById = new HashMap<>();
         onlineTableModel.setRowCount(0);
         for (Player player : playersOnline) {
             markOnline.add(player.getUsername());
         }
-        Collections.sort(players, (o1, o2) -> {
-            if (markOnline.contains(o1.getUsername()) == true) {
+        for (Player player : playersInGame) {
+            markInGame.add(player.getUsername());
+        }
+        Collections.sort(playerList, (o1, o2) -> {
+            if (markOnline.contains(o1.getUsername()) && !markInGame.contains(o1.getUsername())) {
                 return -1;
+            }else if(markOnline.contains(o2.getUsername()) && !markInGame.contains(o2.getUsername())){
+                return 1;
             }
-            return 1;
+            else return -1;
         });
-        for (Player tmpPlayer : players) {
-            if(tmpPlayer.getId()!=this.player.getId())
+        for (Player tmpPlayer : playerList) {
+            String status = (markOnline.contains(tmpPlayer.getUsername()) == true ? "Online" : "Offline");
+            if (markInGame.contains(tmpPlayer.getUsername())) {
+                status = "Trong trận";
+            }
             onlineTableModel.addRow(new Object[]{
                 tmpPlayer.getUsername(),
-                (markOnline.contains(tmpPlayer.getUsername()) == true ? "Online" : "Offline"),
+                status,
                 tmpPlayer.getDiem()});
         }
-        for(Player player: playerList){
+        for (Player player : playerList) {
             getPlayerById.put(player.getId(), player);
             System.out.println(getPlayerById.get(player.getId()).getUsername());
         }
@@ -248,13 +268,15 @@ public class MainFrm extends javax.swing.JFrame {
             playerTable.getColumnModel().getColumn(i).setCellRenderer(renderer);
         }
     }
-
+    
     public int showRequestBattle(Player opponent) {
         return JOptionPane.showConfirmDialog(this, opponent.getUsername() + " muốn chơi với bạn!", "Xác nhận", JOptionPane.YES_NO_OPTION);
     }
-
-    public void playGame(boolean accept) {
-        if (accept) {
+    
+    public void playGame(Message message) {
+        if (message.getBattleDTO().isInGame()) {
+            JOptionPane.showMessageDialog(this, "Đối thủ đang đấu trận khác");
+        } else if (message.getBattleDTO().isAccept()) {
             ReadyFrm readyFrm = new ReadyFrm(control, this);
             readyFrm.showWindow();
         } else {
@@ -267,8 +289,13 @@ public class MainFrm extends javax.swing.JFrame {
         sound.soundButtonClick();
         int row = playerTable.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showConfirmDialog(this, "Vui lòng chọn một đối thủ trước");
-        } else {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn một đối thủ trước");
+        } else if (markOnline.contains(playerList.get(row).getUsername()) == false) {
+            JOptionPane.showMessageDialog(this, "Người chơi đang offline");
+        } else if(markInGame.contains(playerList.get(row).getUsername()) == true){
+            JOptionPane.showMessageDialog(this, "Đối thủ đang trong trận");
+        } 
+        else {
             Player opponent = playerList.get(row);
             System.out.println(opponent.getUsername());
             control.battleRequire(opponent);
@@ -300,7 +327,7 @@ public class MainFrm extends javax.swing.JFrame {
         MatchHistoryFrm history = new MatchHistoryFrm(control, this, getPlayerById);
         history.showWindow();
     }//GEN-LAST:event_lblAvartaMouseClicked
-
+    
     public void draw(Graphics g) {
         g.drawImage(backgroundImg, 0, 0, getWidth(), getHeight(), null);
         pnMain.paintComponents(g);
@@ -314,7 +341,7 @@ public class MainFrm extends javax.swing.JFrame {
 //    }
     // Custom panel for painting the background
     private class CustomPanel extends javax.swing.JPanel {
-
+        
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);  // Calls the default painting of components
@@ -322,7 +349,7 @@ public class MainFrm extends javax.swing.JFrame {
             g.drawImage(backgroundImg, 0, 0, getWidth(), getHeight(), this);
         }
     }
-
+    
     public void showWindow() {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);

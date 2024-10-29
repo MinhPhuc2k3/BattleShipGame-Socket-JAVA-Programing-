@@ -24,6 +24,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 public class BattleViewFrm extends JFrame {
 
@@ -37,10 +38,12 @@ public class BattleViewFrm extends JFrame {
     private int hp = 17;
     private int hpOpponent = 17;
     private boolean[][] shooted = new boolean[10][10];
-     private JLabel lblTurnStatus; // Thêm JLabel cho trạng thái lượt
-    
-    
-    
+    private JLabel lblTurnStatus; // Thêm JLabel cho trạng thái lượt
+    // Existing variables
+    private Timer countdownTimer;
+    private int timeRemaining = 30; // 30 seconds countdown
+    private JLabel lblCountdown; // Label for displaying countdown
+
     public BattleViewFrm(ClientControl control, List<Ship> ships, int turn) {
         this.ships = ships;
         this.turn = turn;
@@ -54,20 +57,26 @@ public class BattleViewFrm extends JFrame {
         pnTop.setLayout(new FlowLayout(FlowLayout.RIGHT));
         pnTop.add(btnAction);
         add(pnTop, BorderLayout.NORTH);
-                this.addWindowListener(new WindowAdapter(){
+        this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
                 control.closeConnect();
             }
-            
+
         });
-        for(int i=0; i<10; i++){
-            for(int j=0; j<10; j++) shooted[i][j] = false;
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                shooted[i][j] = false;
+            }
         }
-        
-              // Khởi tạo JLabel cho trạng thái lượt
+        // Create countdown label
+        lblCountdown = new JLabel("Time left: " + timeRemaining + "s");
+        lblCountdown.setFont(new Font("Arial", Font.BOLD, 18));
+        lblCountdown.setHorizontalAlignment(JLabel.RIGHT);
+        lblCountdown.setForeground(Color.RED);
+        // Khởi tạo JLabel cho trạng thái lượt
         lblTurnStatus = new JLabel();
-                try {
+        try {
             // Nạp phông chữ từ file .ttf
             Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File("src/assets/font/Lalezar-Regular.ttf")).deriveFont(30f);
             lblTurnStatus.setFont(customFont);
@@ -76,13 +85,18 @@ public class BattleViewFrm extends JFrame {
             lblTurnStatus.setFont(new Font("Arial", Font.BOLD, 18)); // Dùng phông mặc định nếu có lỗi
         }
         lblTurnStatus.setHorizontalAlignment(JLabel.CENTER);
-        updateTurnStatus(); // Cập nhật nội dung JLabel theo trạng thái lượt ban đầu
+        
 
         // Thêm JLabel vào JPanel phía trên form
         pnTop.setLayout(new BorderLayout());
         pnTop.add(lblTurnStatus, BorderLayout.CENTER);
 
-        
+        // Add countdown label to the top-right corner
+        pnTop.add(lblCountdown, BorderLayout.EAST);
+        add(pnTop, BorderLayout.NORTH);
+
+        // Initialize countdown timer
+        countdownTimer = new Timer(1000, e -> updateCountdown());
         
         // Panel for both grids
         pnMain = new JPanel();
@@ -148,89 +162,131 @@ public class BattleViewFrm extends JFrame {
         });
         // Add panel to frame
         add(pnMain, BorderLayout.CENTER);
+        
+        
+        updateTurnStatus(); // Cập nhật nội dung JLabel theo trạng thái lượt ban đầu
     }
 
-        private void updateTurnStatus() {
+    
+        private void updateCountdown() {
+        if (timeRemaining > 0) {
+            timeRemaining--;
+            lblCountdown.setText("Time left: " + timeRemaining + "s");
+        } else {
+            countdownTimer.stop();
+            handleTimeout();
+        }
+    }
+
+    private void handleTimeout() {
+        turn = 0; // Pass turn to the opponent
+        updateTurnStatus();
+        control.shootRequest(-1, -1);
+    }
+
+    private void resetCountdown() {
+        timeRemaining = 30;
+        lblCountdown.setText("Time left: " + timeRemaining + "s");
+        countdownTimer.restart();
+    }
+    
+    
+    private void updateTurnStatus() {
         // Cập nhật nội dung của JLabel theo trạng thái của biến turn
         if (turn == 1) {
+            resetCountdown();
             lblTurnStatus.setText("Lượt của bạn");
         } else {
+            countdownTimer.stop();
             lblTurnStatus.setText("Lượt của đối thủ");
         }
     }
-    
+
     public int getHp() {
         return hp;
     }
-    
-    public void mouseClickedActionPerformed(MouseEvent e){
-        if(turn == 1){
+
+    public void mouseClickedActionPerformed(MouseEvent e) {
+        if (turn == 1) {
             Point clickPoint = e.getPoint();
             int cellSize = rightGrid.getCellSize();
             int gridX = (int) (clickPoint.getY() / cellSize);
             int gridY = (int) (clickPoint.getX() / cellSize);
-            System.out.println("Click point: "+ gridX+"-"+gridY);
-            if(!shooted[gridX][gridY]) {
+            System.out.println("Click point: " + gridX + "-" + gridY);
+            if (!shooted[gridX][gridY]) {
                 control.shootRequest(gridX, gridY);
                 shooted[gridX][gridY] = true;
                 turn = 0;
-            }else{
+            } else {
                 JOptionPane.showMessageDialog(this, "Chọn ô khác");
             }
-            
+
         }
     }
-    
+
     public void showWindow() {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setVisible(true);
+        lblCountdown.setText("Time left: " + 0 + "s");
     }
-    
-    public void loseHandle(){
+
+    public void loseHandle() {
         JOptionPane.showMessageDialog(this, "Bạn thua");
         endGame();
     }
-    
-    public int getHitStatus(int x, int y){
+
+    public int getHitStatus(int x, int y) {
+        if(x==-1 && y==-1){
+            turn = 1;
+            updateTurnStatus();
+            return 3;
+        }
         JPanel cell = leftGrid.getCells()[x][y];
-        if(leftGrid.shooteArea(x, y)){
+        if (leftGrid.shooteArea(x, y) != 0) {
             hp--;
             System.out.println(hp);
             cell.setBackground(Color.red);
             updateTurnStatus();
-            if(hp == 0){
+            if (hp == 0) {
                 return 0;
             }
             return 1;
-        }else{
+        } else {
             turn = 1;
             updateTurnStatus();
             cell.setBackground(Color.blue);
             return 2;
         }
-        
+
     }
-    
-    public void showHitStatus(int x, int y, boolean hit){
+
+    public void showHitStatus(int x, int y, boolean hit) {
         JPanel cell = rightGrid.getCells()[x][y];
-        if(hit){
+        if (hit) {
+            resetCountdown();
             turn = 1;
             hpOpponent--;
             cell.setBackground(Color.red);
-            if(hpOpponent == 0){
+            if (hpOpponent == 0) {
                 //Xu li chien thang
                 JOptionPane.showMessageDialog(this, "Bạn thắng");
                 endGame();
             }
-        }else{
-            turn  = 0;
+        } else {
+            turn = 0;
             cell.setBackground(Color.blue);
         }
         updateTurnStatus();
     }
-    
-    public void endGame(){
+
+    public void exitGame() {
+        JOptionPane.showMessageDialog(this, "Đối thủ đã thoát trận, Bạn thắng!");
+        endGame();
+    }
+
+    public void endGame() {
+        countdownTimer.stop();
         control.getMainFrm().setVisible(true);
         control.updateListUserRequest();
         this.dispose();

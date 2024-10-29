@@ -6,16 +6,17 @@ import battle.ship.model.Player;
 import dao.MatchHistoryDAO;
 import dao.PlayerDAO;
 import dto.BattleDTO;
+import dto.ExitGameDTO;
 import dto.Message;
 import dto.LoginDTO;
 import dto.PlayerDTO;
 import dto.PointDTO;
 import dto.ReadyDTO;
+import dto.ShootDTO;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.logging.Logger;
 public class ClientListener implements Runnable {
 
     private static List<ClientListener> clientHandlers = new ArrayList<>();
+    private static List<ClientListener> clientInGame = new ArrayList<>();
     private Socket socket;
     private ObjectOutputStream output;
     private ObjectInputStream input;
@@ -78,6 +80,9 @@ public class ClientListener implements Runnable {
                     case Message.MATCHHISTORY -> {
                         sendListMatchHistory(message);
                     }
+                    case Message.EXITGAME -> {
+                        exitGame();
+                    }
                 }
             } catch (IOException | ClassNotFoundException ex) {
                 closeConnection();
@@ -111,7 +116,8 @@ public class ClientListener implements Runnable {
                 playerDAO.updatePoint(x.player, 1);
                 Room.playerMap.remove(x.player.getUsername());
                 Room.playerMap.remove(player.getUsername());
-                
+                clientInGame.remove(this);
+                clientInGame.remove(x);
             }
             x.output.writeObject(message);
             x.output.flush();
@@ -167,6 +173,8 @@ public class ClientListener implements Runnable {
                         if (message.getBattleDTO().isAccept()) {
                             try {
                                 room.addPlayer(player.getUsername(), this);
+                                clientInGame.add(this);
+                                updateListPlayerOnline();
                                 output.writeObject(message);
                                 output.flush();
                                 x.output.writeObject(message);
@@ -175,21 +183,34 @@ public class ClientListener implements Runnable {
                                 Logger.getLogger(ClientListener.class.getName()).log(Level.SEVERE, null, ex);
                             }
                         } else {
+                            clientInGame.remove(this);
                             try {
+                                clientInGame.remove(x);
                                 room.removePlayer(x.player.getUsername());
                                 x.output.writeObject(message);
                             } catch (IOException ex) {
                                 Logger.getLogger(ClientListener.class.getName()).log(Level.SEVERE, null, ex);
                             }
+                            updateListPlayerOnline();
+                        }
+                    }else if(Room.playerMap.get(x.player.getUsername()).getNumber() == 2){
+                        try {
+                            message.getBattleDTO().setInGame(true);
+                            output.writeObject(message);
+                            output.flush();
+                        } catch (IOException ex) {
+                            Logger.getLogger(ClientListener.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }
-                } else {
+                }  else {
                     try {
                         Room room = new Room();
                         room.addPlayer(player.getUsername(), this);
                         message.getBattleDTO().setStatus(BattleDTO.REQUEST);
                         System.out.println(player.getUsername() + " tạo phòng ");
                         message.getBattleDTO().setOpponent(player);
+                        clientInGame.add(this);
+                        updateListPlayerOnline();
                         x.output.writeObject(message);
                         x.output.flush();
                     } catch (IOException ex) {
@@ -248,13 +269,16 @@ public class ClientListener implements Runnable {
             if(player!=null && Room.playerMap.containsKey(player.getUsername())){
                 Room room = Room.playerMap.get(player.getUsername());
                 for(ClientListener x:room.getListHandler()){
-                    Room.playerMap.remove(x.player.getUsername());
                     if(x!=this){
-                        
-                        //x.output();
+                        Message message = new Message();
+                        ExitGameDTO exitGameDTO = new ExitGameDTO();
+                        message.setExitGameDTO(exitGameDTO);
+                        message.setCommand(Message.EXITGAME);
+                        x.output.writeObject(message);
                     }
                 }
             }
+            clientInGame.remove(this);
             clientHandlers.remove(this);
             System.out.println("So nguoi online la: "+clientHandlers.size());
         } catch (IOException ex) {
@@ -268,11 +292,17 @@ public class ClientListener implements Runnable {
         message.setCommand(Message.UPDATEONLINE);
         PlayerDTO playerDTO = new PlayerDTO();
         List<Player> playerOnline = new ArrayList<>();
+        List<Player> playerInGame = new ArrayList<>();
         for (ClientListener handler : clientHandlers) {
             if (handler.player != null) {
                 playerOnline.add(handler.player);
             }
         }
+        
+        for(ClientListener handler : clientInGame){
+            playerInGame.add(handler.player);
+        }
+        playerDTO.setPlayersInGame(playerInGame);
         playerDTO.setPlayers(playerDAO.getListPlayer());
         playerDTO.setPlayersOnline(playerOnline);
         message.setPlayerDTO(playerDTO);
@@ -298,5 +328,22 @@ public class ClientListener implements Runnable {
         } catch (IOException ex) {
             Logger.getLogger(ClientListener.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    private void exitGame(){
+                Room room = Room.playerMap.get(player.getUsername());
+                ClientListener x = room.getOpponentHandler(this);
+                MatchHistory matchHistory = new MatchHistory();
+                matchHistory.setLoser(x.player);
+                matchHistory.setWiner(player);
+                matchHistory.setTime((new Date(System.currentTimeMillis())));
+                matchHistoryDAO.updateMatchHistory(matchHistory);
+                playerDAO.updatePoint(x.player, -1);
+                playerDAO.updatePoint(player, 1);
+                Room.playerMap.remove(player.getUsername());
+                Room.playerMap.remove(x.player.getUsername());
+                clientInGame.remove(this);
+                clientInGame.remove(x);
+                updateListPlayerOnline();
     }
 }

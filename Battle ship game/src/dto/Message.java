@@ -13,6 +13,7 @@ public class Message implements Serializable {
     public static final int READY = 6;
     public static final int POINT=7;
     public static final int MATCHHISTORY=8;
+    public static final int EXITGAME=9;
     private int command;
     private LoginDTO loginDTO;
     private PlayerDTO playerDTO;
@@ -21,7 +22,18 @@ public class Message implements Serializable {
     private ShootDTO shootDTO;
     private PointDTO pointDTO;
     private MatchHistoryDTO historyDTO;
+    private ExitGameDTO exitGameDTO;
 
+    public ExitGameDTO getExitGameDTO() {
+        return exitGameDTO;
+    }
+
+    public void setExitGameDTO(ExitGameDTO exitGameDTO) {
+        this.exitGameDTO = exitGameDTO;
+    }
+    
+    
+    
     public MatchHistoryDTO getHistoryDTO() {
         return historyDTO;
     }
